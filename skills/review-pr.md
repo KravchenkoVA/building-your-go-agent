@@ -1,5 +1,3 @@
-<!-- TODO: Fetch via GitHub MCP or explicit local mode, route file types, review, consolidate, and ask before posting. Add sequential real delegation in Practice 4; when Codex has no named-role selector, pass the corresponding TOML developer_instructions to a real child explicitly. -->
-
 ## Steps
 
 1. Read the case number from the request and find the corresponding PR in `review-target.json`.
@@ -9,4 +7,4 @@
 5. Apply the security rules in `AGENTS.md`.
 6. Format the findings and summary as specified in `AGENTS.md`.
 7. Show the full review and its posting target, then ask for confirmation.
-8. Post with `add_issue_comment` only after a subsequent explicit `yes` or `post`. Never approve, merge, or close PRs.
+8. Post with `add_issue_comment` only after a subsequent explicit `yes` or `post`. If the user replies `no`, acknowledge the decision and stop. Never approve, merge, or close PRs.

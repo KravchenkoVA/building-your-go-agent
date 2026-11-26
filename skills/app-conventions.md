@@ -1,15 +1,12 @@
----
-name: go-code-style
-description: Apply when writing, editing, or reviewing Go code, including Go examples in documentation.
----
-
 ## Rules
 
-1. **Required — Naming.** Use `MixedCaps` for exported names and `mixedCaps` for unexported names. Follow Go capitalization for initialisms such as `ID`, `URL`, `HTTP`, and `API`. Examples include `UserID`, `apiURL`, and `httpClient`.
-2. **Required — Comments and formatting.** Document each exported declaration with a comment that starts with its name. Format Go code and examples with `gofmt`.
-3. **Critical — Errors.** Explicitly handle or return every error. When adding context, preserve the original error with `fmt.Errorf("…: %w", err)`.
+1. **[LOW] Naming.** Use `MixedCaps` for exported names and `mixedCaps` for unexported names. Follow Go capitalization for initialisms such as `ID`, `URL`, `HTTP`, and `API`. Examples include `UserID`, `apiURL`, and `httpClient`.
+2. **[LOW] Comments and formatting.** Document each exported declaration with a comment that starts with its name. Format Go code with `gofmt`.
+3. **[MEDIUM] Errors.** Explicitly handle or return every error. When adding context, preserve the original error with `fmt.Errorf("…: %w", err)`.
 
-## Compliant example
+## Template
+
+### Compliant example
 
 ```go
 package config
@@ -29,7 +26,7 @@ func ReadAPIConfig(path string) ([]byte, error) {
 }
 ```
 
-## Noncompliant example
+### Non-compliant example
 
 ```go
 package config

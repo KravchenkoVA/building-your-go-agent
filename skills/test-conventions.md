@@ -1,16 +1,14 @@
-````markdown
----
-name: go-unit-test-style
-description: Apply when writing, editing, or reviewing Go unit tests.
----
+## Rules
 
-1. **Required — Naming.** Use `func TestXxx(t *testing.T)` and name each test after the behavior it verifies.
-2. **Critical — Assertions.** Check the error before using the result. Stop the test on an unexpected error. Compare the actual result with the expected result.
-3. **Critical — Isolation.** Keep each test independent of shared state, real external services, and test execution order. Use a local `httptest.Server`, in-package fakes, or `t.TempDir()`. Register resource cleanup with `t.Cleanup`.
+1. **[LOW] Naming.** Use `func TestXxx(t *testing.T)` and name each test after the behavior it verifies.
+2. **[MEDIUM] Assertions.** Check the error before using the result. Stop the test on an unexpected error. Compare the observable result with the expected result and report both on failure.
+3. **[MEDIUM] Isolation.** Keep each test independent of shared state, real external services, and test execution order. Use a local `httptest.Server`, in-package fakes, or `t.TempDir()`. Register resource cleanup with `t.Cleanup`.
 
 Doc comments are optional for test functions and unexported test helpers. In both examples, `GetHealthStatus` is a function in the package under test.
 
-## Compliant example
+## Template
+
+### Compliant example
 
 ```go
 package health
@@ -37,7 +35,7 @@ func TestGetHealthStatusReturnsResponseCode(t *testing.T) {
 }
 ```
 
-## Noncompliant example
+### Non-compliant example
 
 ```go
 package health
@@ -49,4 +47,3 @@ func TestHealth(t *testing.T) {
 	t.Log(status)
 }
 ```
-````
