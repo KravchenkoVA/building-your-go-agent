@@ -14,22 +14,40 @@ Doc comments are optional for test functions and unexported test helpers. In bot
 package health
 
 import (
+	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
-func TestGetHealthStatusReturnsResponseCode(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	t.Cleanup(server.Close)
+// GetHealthStatus returns the HTTP status of the health endpoint.
+func GetHealthStatus(client *http.Client, endpoint string) (int, error) {
+	response, err := client.Get(endpoint)
+	if err != nil {
+		return 0, fmt.Errorf("get health status: %w", err)
+	}
+	if err := response.Body.Close(); err != nil {
+		return 0, fmt.Errorf("close health response: %w", err)
+	}
+	return response.StatusCode, nil
+}
 
-	got, err := GetHealthStatus(server.URL)
+type fakeHealthTransport struct {
+	statusCode int
+}
+
+func (transport fakeHealthTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	return &http.Response{StatusCode: transport.statusCode, Body: http.NoBody}, nil
+}
+
+func TestGetHealthStatusReturnsResponseCode(t *testing.T) {
+	want := http.StatusNoContent
+	client := &http.Client{Transport: fakeHealthTransport{statusCode: want}}
+
+	got, err := GetHealthStatus(client, "https://health.test/health")
 	if err != nil {
 		t.Fatalf("GetHealthStatus: %v", err)
 	}
-	if want := http.StatusNoContent; got != want {
+	if got != want {
 		t.Errorf("status = %d, want %d", got, want)
 	}
 }
@@ -40,10 +58,13 @@ func TestGetHealthStatusReturnsResponseCode(t *testing.T) {
 ```go
 package health
 
-import "testing"
+import (
+	"net/http"
+	"testing"
+)
 
 func TestHealth(t *testing.T) {
-	status, _ := GetHealthStatus("https://api.example.com/health")
+	status, _ := GetHealthStatus(http.DefaultClient, "https://api.example.com/health")
 	t.Log(status)
 }
 ```
