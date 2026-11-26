@@ -13,19 +13,19 @@ The three reviews are from separate Codex CLI sessions started in the course rep
 #### User
 
 ~~~text
-Review only the application files in PR #2 from https://github.com/nebius-academy-templates/go-pr-review-practice for style issues.
+Review only the application files in PR #2 from https://github.com/nebius-academy-templates/go-pr-review-practice for style issues. Use the repository guidance for this Practice 3 review, and limit local reads to the relevant skill and supporting files. Avoid Practice 4 materials and broad repository file listings. Fetch the PR via GitHub MCP and include its live head SHA.
 ~~~
 
 #### Assistant
 
 ~~~text
-I’ll use the app-conventions skill to review PR #2 for style issues in the changed Go application files.
+I’ll use the app-conventions skill and the Practice 3 guidance to review PR #2’s application diff. I’ll fetch the PR through GitHub MCP and include the head SHA I review.
 ~~~
 
 #### Shell command — zsh exit 0
 
 ~~~sh
-cat .agents/skills/app-conventions/SKILL.md && rg --files --hidden -g '!**/.git/**' -g '*ADR*' -g '*policy*' -g 'AGENTS.md' -g '*.md' | head -70
+cat .agents/skills/app-conventions/SKILL.md
 ~~~
 
 ~~~text
@@ -36,63 +36,71 @@ description: "Go application/library conventions. Load for changed .go files who
 
 Read `skills/app-conventions.md` relative to the repository root and follow it.
 Do not load other convention bodies unless the requested file scope needs them.
-practice-description.md
-CLAUDE.md
-AGENTS.md
-skills/test-conventions.md
-skills/architecture-guidelines.md
-skills/app-conventions.md
-skills/review-pr.md
-fixture-policy.md
-results/evaluation.md
-results/test-session-4.md
-results/pr-05-output.md
-results/test-session-5.md
-results/test-session-1.md
-results/pr-03-output.md
-results/prompt-injection.md
-results/pr-04-output.md
-results/observability-table.md
-results/pr-02-output.md
-results/pr-01-output.md
-results/test-session-2.md
-results/test-session-3.md
-README.md
-docs/adr/ADR-002-configuration.md
-docs/adr/ADR-004-dependency-injection.md
-docs/adr/ADR-001-layered-architecture.md
-docs/adr/ADR-003-repository-pattern.md
-review_history.md
-.claude/skills/app-conventions/SKILL.md
-.claude/skills/review-pr/SKILL.md
-.claude/skills/architecture-guidelines/SKILL.md
-.claude/skills/test-conventions/SKILL.md
-.claude/agents/architecture-reviewer.md
-.claude/agents/style-reviewer.md
-.claude/agents/security-reviewer.md
-.agents/skills/app-conventions/SKILL.md
-.agents/skills/review-pr/SKILL.md
-.agents/skills/draft-release-notes/SKILL.md
-.agents/skills/architecture-guidelines/SKILL.md
-.agents/skills/pr-label-format/SKILL.md
-.agents/skills/test-conventions/SKILL.md
-setup/tracing.md
-setup/github-mcp.md
-reviewers/architecture-reviewer.md
-reviewers/style-reviewer.md
-reviewers/security-reviewer.md
+~~~
+
+#### Shell command — zsh exit 1
+
+~~~sh
+rg -n -i 'practice 3|app-conventions' README.md AGENTS.md
 ~~~
 
 #### Shell command — zsh exit 0
 
 ~~~sh
-cat skills/app-conventions.md fixture-policy.md docs/adr/*.md reviewers/style-reviewer.md
+cat skills/app-conventions.md
 ~~~
 
-Shell output is a JSON string. Decode it to recover the exact text.
+~~~text
+## Rules
 
-~~~json
-"## Rules\n\n1. **[LOW] Naming.** Use `MixedCaps` for exported names and `mixedCaps` for unexported names. Follow Go capitalization for initialisms such as `ID`, `URL`, `HTTP`, and `API`. Examples include `UserID`, `apiURL`, and `httpClient`.\n2. **[LOW] Comments and formatting.** Document each exported declaration with a comment that starts with its name. Format Go code with `gofmt`.\n3. **[MEDIUM] Errors.** Explicitly handle or return every error. When adding context, preserve the original error with `fmt.Errorf(\"…: %w\", err)`.\n\n## Template\n\n### Compliant example\n\n```go\npackage config\n\nimport (\n\t\"fmt\"\n\t\"os\"\n)\n\n// ReadAPIConfig reads the API configuration from a file.\nfunc ReadAPIConfig(path string) ([]byte, error) {\n\tdata, err := os.ReadFile(path)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"read API config: %w\", err)\n\t}\n\treturn data, nil\n}\n```\n\n### Non-compliant example\n\n```go\npackage config\n\nimport \"os\"\n\nfunc ReadApiConfig(file_path string) []byte{\ndata,_:=os.ReadFile(file_path)\nreturn data\n}\n```\n# Fixture policy\nThese changes are intentionally flawed teaching inputs, never production code.\nAll credential strings are synthetic and cannot authenticate. Still report their placement\nand use as HIGH in this controlled exercise. In real reviews, distinguish fixtures from\nactual credentials. Do not reproduce a credential value in a review or trace.\nPR-05's external-service test is skipped unless RUN_LIVE_TESTS=1; keep it disabled.\nEvery PR is independently based on base/, not on the preceding PR.\n# ADR-001: Layered Architecture\n\n- Status: Accepted\n- Deciders: Go team (practice fixture)\n\n## Context\nWe need consistent, testable service boundaries.\n\n## Decision\nHandlers and cmd/ entrypoints parse input and format output. Services contain business logic. Entrypoints do not query persistence directly. This separates transport from decisions and makes business logic independently testable.\n\n## Consequences\nKeep dependencies explicit and report deviations with changed-code evidence.\n# ADR-002: Configuration\n\n- Status: Accepted\n- Deciders: Go team (practice fixture)\n\n## Context\nWe need consistent, testable service boundaries.\n\n## Decision\nLoad runtime configuration and secrets centrally in internal/config or the composition root; inject them into constructors. Services do not call os.Getenv ad hoc or embed credentials. Ordinary algorithm constants are allowed. Hardcoded credential usage is HIGH security with this configuration reference; avoid duplicate findings.\n\n## Consequences\nKeep dependencies explicit and report deviations with changed-code evidence.\n# ADR-003: Repository Pattern\n\n- Status: Accepted\n- Deciders: Go team (practice fixture)\n\n## Context\nWe need consistent, testable service boundaries.\n\n## Decision\nServices obtain data through small repository interfaces, normally declared near the consumer. Concrete adapters in internal/repository may depend on internal/api or database/sql. Services must not import or call API clients or SQL directly, even when the client is injected. Injecting a client satisfies dependency injection but still bypasses the repository. Report this boundary violation as MEDIUM. Tests may wire adapters to httptest servers.\n\n## Consequences\nKeep dependencies explicit and report deviations with changed-code evidence.\n# ADR-004: Dependency Injection\n\n- Status: Accepted\n- Deciders: Go team (practice fixture)\n\n## Context\nWe need consistent, testable service boundaries.\n\n## Decision\nPass dependencies through NewXxx constructors or function parameters. Use small interfaces where consumers need substitution. Do not use global mutable service instances, global clients, or ServiceLocator registries. Tests provide fakes or local adapters. This is a team decision, not a Go language constraint.\n\n## Consequences\nKeep dependencies explicit and report deviations with changed-code evidence.\n# style-reviewer\n\n\u005B\u0050LACEHOLDER\u005D — Practice 4: focused read-only Go reviewer prompt,\ncomplete input coverage, severity rules and clean response.\n"
+1. **[LOW] Naming.** Use `MixedCaps` for exported names and `mixedCaps` for unexported names. Follow Go capitalization for initialisms such as `ID`, `URL`, `HTTP`, and `API`. Examples include `UserID`, `apiURL`, and `httpClient`.
+2. **[LOW] Comments and formatting.** Document each exported declaration with a comment that starts with its name. Format Go code with `gofmt`.
+3. **[MEDIUM] Errors.** Explicitly handle or return every error. When adding context, preserve the original error with `fmt.Errorf("…: %w", err)`.
+
+## Template
+
+### Compliant example
+
+```go
+package config
+
+import (
+	"fmt"
+	"os"
+)
+
+// ReadAPIConfig reads the API configuration from a file.
+func ReadAPIConfig(path string) ([]byte, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read API config: %w", err)
+	}
+	return data, nil
+}
+```
+
+### Non-compliant example
+
+```go
+package config
+
+import "os"
+
+func ReadApiConfig(file_path string) []byte{
+data,_:=os.ReadFile(file_path)
+return data
+}
+```
+~~~
+
+#### Shell command — zsh exit 0
+
+~~~sh
+rg --files -g '*practice*3*' -g '*Practice*3*' -g '*practice_3*' -g '*practice-03*' -g '*fixture-policy*'
+~~~
+
+~~~text
+fixture-policy.md
 ~~~
 
 #### GitHub MCP — pull_request_read
@@ -102,7 +110,7 @@ Shell output is a JSON string. Decode it to recover the exact text.
   "owner": "nebius-academy-templates",
   "repo": "go-pr-review-practice",
   "pullNumber": 2,
-  "method": "get_diff"
+  "method": "get"
 }
 ~~~
 
@@ -111,88 +119,128 @@ Shell output is a JSON string. Decode it to recover the exact text.
   "content": [
     {
       "type": "text",
-      "text": "diff --git a/internal/notifications/manager.go b/internal/notifications/manager.go\nnew file mode 100644\nindex 0000000..eab40ac\n--- /dev/null\n+++ b/internal/notifications/manager.go\n@@ -0,0 +1,13 @@\n+package notifications\n+\n+type notification_manager struct {\n+\tpending_notifications []string\n+}\n+\n+func (m *notification_manager) Schedule_notification(Title string) {\n+\tm.pending_notifications = append(m.pending_notifications, Title)\n+}\n+\n+func (m *notification_manager) Get_pending() []string {\n+\treturn append([]string(nil), m.pending_notifications...)\n+}\n"
+      "text": "{\"number\":2,\"title\":\"Add notification scheduling manager\",\"body\":\"## Summary\\n\\nAdd a lightweight notification manager that stores pending notification titles and returns them to callers.\\n\\n## Changes\\n\\n- Added a notification manager type.\\n- Added an operation for scheduling notifications.\\n- Added an operation for retrieving pending notifications.\\n- Returned a copy of the pending notification list to prevent external mutation.\\n\\n## Testing\\n\\n- `go test ./...`\\n- `go vet ./...`\",\"state\":\"open\",\"draft\":false,\"merged\":false,\"mergeable_state\":\"clean\",\"html_url\":\"https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2\",\"user\":{\"login\":\"[REDACTED_GITHUB_USER]\",\"id\":\"[REDACTED_USER_ID]\",\"profile_url\":\"https://github.com/[REDACTED_GITHUB_USER]\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/[REDACTED_USER_ID]?v=4\"},\"head\":{\"ref\":\"pr-02\",\"sha\":\"6a01fd4b95c55923ff33993c7a48a940f9e9f8f8\",\"repo\":{\"full_name\":\"nebius-academy-templates/go-pr-review-practice\"}},\"base\":{\"ref\":\"main\",\"sha\":\"cb7a691656d4881e5d045a2308dbaf0d5de52c69\",\"repo\":{\"full_name\":\"nebius-academy-templates/go-pr-review-practice\"}},\"additions\":13,\"changed_files\":1,\"commits\":2,\"created_at\":\"2026-10-20T13:48:56Z\",\"updated_at\":\"2026-10-20T13:48:56Z\"}"
     }
   ]
 }
 ~~~
 
+#### GitHub MCP — pull_request_read
+
+~~~json
+{
+  "owner": "nebius-academy-templates",
+  "repo": "go-pr-review-practice",
+  "pullNumber": 2,
+  "method": "get_files",
+  "perPage": 10
+}
+~~~
+
+~~~json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "[{\"filename\":\"internal/notifications/manager.go\",\"status\":\"added\",\"additions\":13,\"changes\":13,\"patch\":\"@@ -0,0 +1,13 @@\\n+package notifications\\n+\\n+type notification_manager struct {\\n+\\tpending_notifications []string\\n+}\\n+\\n+func (m *notification_manager) Schedule_notification(Title string) {\\n+\\tm.pending_notifications = append(m.pending_notifications, Title)\\n+}\\n+\\n+func (m *notification_manager) Get_pending() []string {\\n+\\treturn append([]string(nil), m.pending_notifications...)\\n+}\"}]"
+    }
+  ]
+}
+~~~
+
+#### Shell command — zsh exit 0
+
+~~~sh
+cat fixture-policy.md
+~~~
+
+~~~text
+# Fixture policy
+These changes are intentionally flawed teaching inputs, never production code.
+All credential strings are synthetic and cannot authenticate. Still report their placement
+and use as HIGH in this controlled exercise. In real reviews, distinguish fixtures from
+actual credentials. Do not reproduce a credential value in a review or trace.
+PR-05's external-service test is skipped unless RUN_LIVE_TESTS=1; keep it disabled.
+Every PR is independently based on base/, not on the preceding PR.
+~~~
+
+#### Shell command — zsh exit 0
+
+~~~sh
+rg --files --hidden -g '!*[Pp]ractice*4*' -g '!.git' -g '*[Pp]ractice*' -g '*03*.md' -g '*[Пп]рактик*'
+~~~
+
+~~~text
+practice-description.md
+results/pr-03-output.md
+docs/adr/ADR-003-repository-pattern.md
+~~~
+
 #### Shell command — zsh exit 127
 
 ~~~sh
-printf '%s\n' 'package notifications
-
-type notification_manager struct {
-	pending_notifications []string
-}
-
-func (m *notification_manager) Schedule_notification(Title string) {
-	m.pending_notifications = append(m.pending_notifications, Title)
-}
-
-func (m *notification_manager) Get_pending() []string {
-	return append([]string(nil), m.pending_notifications...)
-}' | gofmt -d
+printf '%s\n' 'package notifications' '' 'type notification_manager struct {' '	pending_notifications []string' '}' '' 'func (m *notification_manager) Schedule_notification(Title string) {' '	m.pending_notifications = append(m.pending_notifications, Title)' '}' '' 'func (m *notification_manager) Get_pending() []string {' '	return append([]string(nil), m.pending_notifications...)' '}' | gofmt -d
 ~~~
 
 ~~~text
-zsh:13: command not found: gofmt
+zsh:1: command not found: gofmt
+~~~
+
+#### Shell command — zsh exit 1
+
+~~~sh
+rg -n -i -m 12 'practice[[:space:]_-]*3|практик[а-я]*[[:space:]_-]*3|app-conventions|PR #2|PR-02' practice-description.md
 ~~~
 
 #### Shell command — zsh exit 0
 
 ~~~sh
-printf '%s' 'internal/notifications/manager.go' | shasum -a 256
+rg -n '^#{1,6} ' practice-description.md
 ~~~
 
 ~~~text
-c180af3afc2e690248ac6ce59e972d44abba891375f120de9e39827b1b2b0a9e  -
+1:# Practice overview
+~~~
+
+#### Shell command — zsh exit 1
+
+~~~sh
+which -a go gofmt; ls -d /usr/local/go/bin/gofmt /opt/homebrew/opt/go/libexec/bin/gofmt /opt/homebrew/bin/gofmt
+~~~
+
+~~~text
+go not found
+gofmt not found
+ls: /opt/homebrew/bin/gofmt: No such file or directory
+ls: /opt/homebrew/opt/go/libexec/bin/gofmt: No such file or directory
+ls: /usr/local/go/bin/gofmt: No such file or directory
 ~~~
 
 #### Shell command — zsh exit 0
 
 ~~~sh
-rg --files --hidden -g gofmt -g '!pkg/mod/**' /usr/local/go /opt/homebrew [REDACTED_HOME]/sdk [REDACTED_HOME]/go/pkg/mod/golang.org 2>/dev/null | head -10
+rg -n -i 'style|convention|exercise[[:space:]_-]*3|lesson[[:space:]_-]*3|practice overview|skills/|pr.?0?2\b' practice-description.md | rg -vi 'practice[[:space:]_-]*4|stage[[:space:]_-]*4|exercise[[:space:]_-]*4'
 ~~~
 
 ~~~text
-[REDACTED_HOME]/sdk/go1.26.4/bin/gofmt
-[REDACTED_HOME]/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.10.darwin-arm64/bin/gofmt
-[REDACTED_HOME]/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.9.darwin-arm64/bin/gofmt
-~~~
-
-#### Shell command — zsh exit 0
-
-~~~sh
-printf '%s\n' 'package notifications
-
-type notification_manager struct {
-	pending_notifications []string
-}
-
-func (m *notification_manager) Schedule_notification(Title string) {
-	m.pending_notifications = append(m.pending_notifications, Title)
-}
-
-func (m *notification_manager) Get_pending() []string {
-	return append([]string(nil), m.pending_notifications...)
-}' | [REDACTED_HOME]/sdk/go1.26.4/bin/gofmt -d
+1:# Practice overview
+11:| 3. Skills | Selective convention loading and review workflow | `results/test-session-3.md` |
 ~~~
 
 #### Assistant — final response
 
 ~~~text
-Reviewed the sole changed Go application file in [PR #2](https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2) for style.
+Practice 3 application style review for [PR #2](https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2). GitHub MCP reported live head `6a01fd4b95c55923ff33993c7a48a940f9e9f8f8`. I reviewed the sole changed application file. `gofmt` was unavailable, so formatting was checked by inspection.
 
 ## internal/notifications/manager.go
 
-- [LOW] Lines 3–4 use underscores in unexported names. Rename `notification_manager` to `notificationManager` and `pending_notifications` to `pendingNotifications`. [PR diff](https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2/files#diff-c180af3afc2e690248ac6ce59e972d44abba891375f120de9e39827b1b2b0a9eR3)
-- [LOW] Lines 7 and 11 use underscores in exported method names and omit their doc comments. Rename `Schedule_notification` to `ScheduleNotification` and `Get_pending` to `GetPending`, then add a doc comment above each method that starts with its new name. [PR diff](https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2/files#diff-c180af3afc2e690248ac6ce59e972d44abba891375f120de9e39827b1b2b0a9eR7)
-- [LOW] Line 7 capitalizes the parameter `Title`. Rename it to `title` in the signature and the method body. [PR diff](https://github.com/nebius-academy-templates/go-pr-review-practice/pull/2/files#diff-c180af3afc2e690248ac6ce59e972d44abba891375f120de9e39827b1b2b0a9eR7)
+- **[LOW]** Rename the unexported type `notification_manager` and field `pending_notifications` to `notificationManager` and `pendingNotifications` to follow Go’s `mixedCaps` convention. [Lines 3–5](https://github.com/nebius-academy-templates/go-pr-review-practice/blob/6a01fd4b95c55923ff33993c7a48a940f9e9f8f8/internal/notifications/manager.go#L3-L5)
+- **[LOW]** Rename the exported methods `Schedule_notification` and `Get_pending` to `ScheduleNotification` and `GetPending`. Rename the parameter `Title` to `title`. [Lines 7–12](https://github.com/nebius-academy-templates/go-pr-review-practice/blob/6a01fd4b95c55923ff33993c7a48a940f9e9f8f8/internal/notifications/manager.go#L7-L12)
+- **[LOW]** Add doc comments to both exported methods, starting each comment with the method’s final name. [Lines 7–12](https://github.com/nebius-academy-templates/go-pr-review-practice/blob/6a01fd4b95c55923ff33993c7a48a940f9e9f8f8/internal/notifications/manager.go#L7-L12)
 
 ## Summary
 
-0 HIGH, 0 MEDIUM, 3 LOW. Highest severity is LOW. `gofmt` reported no changes.
+0 HIGH, 0 MEDIUM, 3 LOW. Highest severity **LOW**.
 ~~~
 
 ### PR #4 test file review
